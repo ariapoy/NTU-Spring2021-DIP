@@ -5,6 +5,8 @@ from multiprocessing import Pool
 
 import utils
 import pdb
+import warnings
+warnings.filterwarnings("ignore")
 
 # load image
 sample2_arr = utils.load_img2npArr("sample2.jpg")
@@ -38,7 +40,7 @@ sample2_cnt, sample2_intensity = intensity_hist(sample2_arr, n_bins=L)
 result3_cnt, result3_intensity = intensity_hist(result3_arr, n_bins=L)
 result4_cnt, result4_intensity = intensity_hist(result4_arr, n_bins=L)
 
-utils.plot_hist("prob2_c", 
+utils.plot_hist("prob2c", 
                 [sample2_intensity, sample2_cnt],
                 [result3_intensity, result3_cnt],
                 [result4_intensity, result4_cnt]
@@ -113,7 +115,6 @@ def local_hist_equal(img_arr, kernel_size=51, pad_method="edge"):
     return result
 
 # Remember delete it before submit hw1
-'''
 result6_arr = local_hist_equal(sample3_arr)
 utils.save_npArr2JPG(result6_arr, "6_result")
 
@@ -121,12 +122,11 @@ utils.save_npArr2JPG(result6_arr, "6_result")
 sample3_cnt, sample3_intensity = intensity_hist(sample3_arr, n_bins=L)
 result5_cnt, result5_intensity = intensity_hist(result5_arr, n_bins=L)
 result6_cnt, result6_intensity = intensity_hist(result6_arr, n_bins=L)
-utils.plot_hist("prob2_f",
+utils.plot_hist("prob2f",
                 [sample3_intensity, sample3_cnt],
                 [result5_intensity, result5_cnt],
                 [result6_intensity, result6_cnt]
                 )
-'''
 # prob (g)
 '''
 - Linear scaling and clipping is **useless** as range is filling 0~255.
@@ -147,7 +147,6 @@ utils.plot_hist("prob2_f",
     - a=1: looks good!
     - a=2: brighter than a=1.
     - a=1/2: dark but **unreasonable** for our range is not full of 0~1.
-- Reverse
 '''
 
 # def transfer function
@@ -213,43 +212,43 @@ def transfer_Okapi_BM25(F_jk, k=1):
 
 sample4_F_jk = sample4_arr / 255
 
-#result7_1_arr = utils.int_round(transfer_powerLaw(sample4_F_jk, p=1/2)*255)
-#result7_2_arr = utils.int_round(transfer_rubberBand(sample4_F_jk, cp=(0.2, 0.5))*255)
-#result7_3_arr = utils.int_round(transfer_logPt(sample4_F_jk, a=1)*255)
-#result7_4_arr = utils.int_round(transfer_reverse(sample4_F_jk)*255)
-#result7_5_arr = utils.int_round(transfer_inverse(sample4_F_jk)*255)
-#result7_6_arr = utils.int_round(global_hist_equal(sample4_arr))
-#result7_7_arr = utils.int_round(transfer_ampLVSlice(sample4_F_jk, Slice=(0.2, 0.4), level=0.6, Type="zero")*255)
-#result7_8_arr = utils.int_round(transfer_Okapi_BM25(sample4_F_jk, k=0.01)*255)
+result7_1_arr = utils.int_round(transfer_powerLaw(sample4_F_jk, p=1/2)*255)
+result7_2_arr = utils.int_round(transfer_rubberBand(sample4_F_jk, cp=(0.2, 0.5))*255)
+result7_3_arr = utils.int_round(transfer_logPt(sample4_F_jk, a=1)*255)
+result7_4_arr = utils.int_round(transfer_reverse(sample4_F_jk)*255)
+result7_5_arr = utils.int_round(transfer_inverse(sample4_F_jk)*255)
+result7_6_arr = utils.int_round(global_hist_equal(sample4_arr))
+result7_7_arr = utils.int_round(transfer_ampLVSlice(sample4_F_jk, Slice=(0.2, 0.4), level=0.6, Type="zero")*255)
+result7_8_arr = utils.int_round(transfer_Okapi_BM25(sample4_F_jk, k=0.01)*255)
 result7_9_arr = utils.int_round(transfer_generalRubberBand(sample4_F_jk, 
                                            lambda X: transfer_powerLaw(X, 1/2),
                                            lambda X: transfer_powerLaw(X, 2),
                                            cp=(0.7, 0.83)
                                            )*255)
 
-#utils.plot_transfer("powerLaw", lambda X: transfer_powerLaw(X, p=1/2) )
-#utils.plot_transfer("rubberBand", lambda X: transfer_rubberBand(X, cp=(0.2, 0.5) ) )
-#utils.plot_transfer("logPt", lambda X: transfer_logPt(X, a=1) )
-#utils.plot_transfer("reverse", lambda X: transfer_reverse(X) )
-#utils.plot_transfer("inverse", lambda X: transfer_inverse(X) )
-#utils.plot_transfer("ampLVSlice", lambda X: transfer_ampLVSlice(X, Slice=(0.2, 0.4), level=0.6, Type="zero") )
-#utils.plot_transfer("Okapi_BM25", lambda X: transfer_Okapi_BM25(X, k=0.01) )
+utils.plot_transfer("powerLaw", lambda X: transfer_powerLaw(X, p=1/2), "tmp")
+utils.plot_transfer("rubberBand", lambda X: transfer_rubberBand(X, cp=(0.2, 0.5) ), "tmp")
+utils.plot_transfer("logPt", lambda X: transfer_logPt(X, a=1), "tmp")
+utils.plot_transfer("reverse", lambda X: transfer_reverse(X), "tmp")
+utils.plot_transfer("inverse", lambda X: transfer_inverse(X), "tmp")
+utils.plot_transfer("ampLVSlice", lambda X: transfer_ampLVSlice(X, Slice=(0.2, 0.4), level=0.6, Type="zero"), "tmp")
+utils.plot_transfer("Okapi_BM25", lambda X: transfer_Okapi_BM25(X, k=0.01), "tmp")
 GRB = lambda Y: transfer_generalRubberBand(Y, lambda X: transfer_powerLaw(X, 1/2), lambda X: transfer_powerLaw(X, 2), cp=(0.7, 0.83))
 utils.plot_transfer("generalRubberBand", lambda X: GRB(X) )
 
-#utils.save_npArr2JPG(result7_1_arr, "7_result_1")
-#utils.save_npArr2JPG(result7_2_arr, "7_result_2")
-#utils.save_npArr2JPG(result7_3_arr, "7_result_3")
-#utils.save_npArr2JPG(result7_4_arr, "7_result_4")
-#utils.save_npArr2JPG(result7_5_arr, "7_result_5")
-#utils.save_npArr2JPG(result7_6_arr, "7_result_6")
-#utils.save_npArr2JPG(result7_7_arr, "7_result_7")
-#utils.save_npArr2JPG(result7_8_arr, "7_result_8")
+utils.save_npArr2JPG(result7_1_arr, "tmp/7_result_1")
+utils.save_npArr2JPG(result7_2_arr, "tmp/7_result_2")
+utils.save_npArr2JPG(result7_3_arr, "tmp/7_result_3")
+utils.save_npArr2JPG(result7_4_arr, "tmp/7_result_4")
+utils.save_npArr2JPG(result7_5_arr, "tmp/7_result_5")
+utils.save_npArr2JPG(result7_6_arr, "tmp/7_result_6")
+utils.save_npArr2JPG(result7_7_arr, "tmp/7_result_7")
+utils.save_npArr2JPG(result7_8_arr, "tmp/7_result_8")
 utils.save_npArr2JPG(result7_9_arr, "7_result")
 
 sample4_cnt, sample4_intensity = intensity_hist(sample4_arr, n_bins=L)
 result7_cnt, result7_intensity = intensity_hist(result7_9_arr, n_bins=L)
-utils.plot_hist("prob2_g",
+utils.plot_hist("prob2g",
                 [sample4_intensity, sample4_cnt],
                 [result7_intensity, result7_cnt]
                 )

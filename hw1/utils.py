@@ -34,12 +34,12 @@ def plot_hist(name, *args):
     plt.savefig( "{0}.png".format(name) )
     plt.clf()
 
-def plot_transfer(name, T):
+def plot_transfer(name, T, prefix_dir="."):
     r = np.linspace(0., 1.0, 100)
     s = T(r)
     plt.plot(r, s)
     plt.title( "{0}".format(name) )
-    plt.savefig( "transfer_{0}.png".format(name) )
+    plt.savefig( "{1}/prob2g_transfer_{0}.png".format(name, prefix_dir) )
     plt.clf()
 
 def plot_spectrum(im_fft, fig_name):

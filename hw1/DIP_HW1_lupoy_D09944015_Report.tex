@@ -1,0 +1,55 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{amsmath,amssymb,amsthm} 
+% for x'
+\usepackage{mathtools,textcomp}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage[left=20mm,top=20mm]{geometry}
+
+\usepackage{fontspec}
+ % Times New Roman
+% \setmainfont[Path = fonts/, 
+% BoldFont=TimesNewerRoman-Italic.otf,
+% ItalicFont=TimesNewerRoman-Italic.otf,
+% BoldItalicFont=TimesNewerRoman-BoldItalic.otf
+% ]{TimesNewerRoman-Regular.otf}
+
+% 中文字
+\usepackage{xeCJK}
+\setCJKmainfont[Path = fonts/ , AutoFakeBold=true,AutoFakeSlant=true]{cwTeXKai.ttf}
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip = 0pt plus 1pt
+\setlength{\parskip}{0.3cm}
+
+\usepackage{xcolor}
+\newcommand{\alert}[1]{\textcolor{red}{\textbf{#1}}}
+
+% make hyperlink reference with color
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true
+}
+
+% multiple reference
+\usepackage{cleveref}
+
+% pandoc .md to .tex
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+\title{HOMEWORK ASSIGNMENT \#1 Image Enhancement and Noise Removal}
+\author{Poy Lu 呂栢頤 \\ D09944015 \\ 網媒所博一 \\ \url{ariapoy@gmail.com}}
+
+\date{\today}
+
+% no paragraph indent overall document
+\setlength\parindent{0pt}
+\begin{document}
+
+\maketitle
+
+\input{memo1.tex}
+\input{memo2.tex}
+\input{memo3.tex}
+
+\end{document}
