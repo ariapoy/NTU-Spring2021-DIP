@@ -115,8 +115,9 @@ def local_hist_equal(img_arr, kernel_size=51, pad_method="edge"):
     return result
 
 # Remember delete it before submit hw1
-result6_arr = local_hist_equal(sample3_arr)
-utils.save_npArr2JPG(result6_arr, "6_result")
+for i, k in enumerate([3, 5, 51, 151, 351]):
+    result6_arr = local_hist_equal(sample3_arr, kernel_size=k)
+    utils.save_npArr2JPG(result6_arr, "tmp/6_result_{0}".format(i))
 
 # prob (f)
 sample3_cnt, sample3_intensity = intensity_hist(sample3_arr, n_bins=L)

@@ -19,6 +19,11 @@ def int_round(img_arr):
     return np.array(np.round(img_arr), dtype=np.uint8)
 
 def plot_hist(name, *args):
+    '''
+    Inputs:
+    - name: figure name
+    - *args : [list [ [intensity, cnt] ]]
+    '''
     hist = []
     L = 256
     for h in args:
