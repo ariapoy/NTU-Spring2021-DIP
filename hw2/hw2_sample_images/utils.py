@@ -11,6 +11,7 @@ def load_img2npArr(name):
     return img_arr
 
 def save_npArr2JPG(img_arr, name):
+    img_arr = img_arr.astype(np.uint8)
     img = Image.fromarray(img_arr)
     img.convert("RGB").save("{0}.jpg".format(name), "JPEG")
     print("Save fig {0}.jpg!".format(name))
@@ -18,19 +19,39 @@ def save_npArr2JPG(img_arr, name):
 def int_round(img_arr):
     return np.array(np.round(img_arr), dtype=np.uint8)
 
+def poy_histogram(img_arr, bins):
+    intensity = bins
+    cnt = np.zeros(bins.shape)
+    if not isinstance(img_arr[0, 0], int):
+        img_arr = img_arr.astype(int)
+    for i in range(img_arr.shape[0]):
+        for j in range(img_arr.shape[1]):
+            cnt[ img_arr[i, j] ] += 1
+    return cnt, intensity
+
 def plot_hist(name, *args):
+    """
+    parameters
+    ----------
+    name: str
+        Figure name
+    *args: list of [intensity, cnt]
+        list of [intensity, cnt] paris.
+    """
     hist = []
-    L = 256
     for h in args:
         hist.append(h)
     n_plots = len(hist)
     fig, axes = plt.subplots(1, n_plots)
     fig.set_size_inches(16, 6)
     fig.suptitle("Compare histogram of {0}".format(name))
-    ax_bin = np.diff(np.arange(L + 1))
     for i in range(n_plots):
         # hist[i] = [intensity, cnt]
-        axes[i].bar(hist[i][0], hist[i][1], width=ax_bin, align="edge")
+        ax_bin = np.ones(hist[i][0].shape)
+        if isinstance(axes, np.ndarray):
+            axes[i].bar(hist[i][0], hist[i][1], width=ax_bin, align="edge")
+        else:
+            axes.bar(hist[i][0], hist[i][1], width=ax_bin, align="edge")
     plt.savefig( "{0}.png".format(name) )
     plt.clf()
 
@@ -75,4 +96,23 @@ def plot_param_search(f, param_name, param_grid, img_orig, img_noise, img_name):
     plt.title('Different {0} for PSNR'.format(param_name))
     plt.savefig( "{0}_param{1}.png".format(img_name, param_name) )
     plt.clf()
+
+def transfer_powerLaw(F_jk, p=2):
+    G_jk = F_jk ** p
+    return G_jk
+
+def filter_median(img_arr, kernel_size=3, percent=50, pad_method="edge"):
+    M, N = img_arr.shape
+    result = np.zeros( (M, N) )
+    n_pad = kernel_size // 2
+    img_expand_arr = np.pad(img_arr, ((n_pad, n_pad), (n_pad, n_pad)), "edge")
+    M_expand, N_expand = img_expand_arr.shape
+    # convolution/weighted average
+    for i in range(M):
+        for j in range(N):
+            result_part = img_expand_arr[i: i + kernel_size, j: j + kernel_size]
+            #result[i, j] = np.median(result_part)
+            result[i, j] = np.percentile(result_part, percent, interpolation="nearest")
+    result = int_round(result)
+    return result
 
