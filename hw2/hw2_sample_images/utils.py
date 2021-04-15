@@ -98,7 +98,15 @@ def plot_param_search(f, param_name, param_grid, img_orig, img_noise, img_name):
     plt.clf()
 
 def transfer_powerLaw(F_jk, p=2):
+    #F_jk = img_arr / 255
     G_jk = F_jk ** p
+    #G_jk = int_round(G_jk * 255)
+    return G_jk
+
+def transfer_reverse(F_jk):
+    F_jk = F_jk / 255
+    G_jk = 1 - F_jk
+    G_jk = int_round(G_jk * 255)
     return G_jk
 
 def filter_median(img_arr, kernel_size=3, percent=50, pad_method="edge"):

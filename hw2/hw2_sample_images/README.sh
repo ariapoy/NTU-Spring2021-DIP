@@ -1,14 +1,11 @@
-# DIP Homework Assignment #1
+# DIP Homework Assignment #2
 # Name: Poy Lu 呂栢頤
 # ID #: D09944015
 # email: ariapoy@gmail.com
 
 # for appendix results
 mkdir -p tmp
-mkdir -p report
-python prob1_warmup.py
-python prob2_imgEnhance.py
-python prob3_imgNoiseRemove.py
-mv *.png report/
+python prob1_edgeDetection.py
+python prob2_geo_modify.py
 echo "Finished!"
 

@@ -7,6 +7,9 @@ import utils
 
 import pdb
 
+import warnings
+warnings.filterwarnings("ignore")
+
 # load image
 sample1_arr = utils.load_img2npArr("sample1.jpg")
 sample2_arr = utils.load_img2npArr("sample2.jpg")
@@ -18,7 +21,7 @@ sample2_arr = utils.load_img2npArr("sample2.jpg")
 Perform 1st order edge detection and output the edge maps as result1.jpg
 '''
 
-def first_order_detection(img_arr, T=None, n_points=9, k=2, check_row_col=None, verbose="prob1_a_1_grad_hist"):
+def first_order_detection(img_arr, T=None, n_points=9, k=2, check_row_col=None, verbose="prob1a1_grad_hist"):
     """1st order edge detection
     img_arr: np.array with img_arr.shape=(img.height, img.width)
         Grayscale image as NumPy array with range [0, 255]
@@ -91,16 +94,14 @@ def first_order_detection(img_arr, T=None, n_points=9, k=2, check_row_col=None, 
     return edge_map_arr, theta
 
 # Remember uncomment it before you submit.
-"""
 result1_arr, _ = first_order_detection(sample1_arr, T=2, n_points=9, k=2)
-utils.save_npArr2JPG(result1_arr, "result1_T=2")
+utils.save_npArr2JPG(result1_arr, "tmp/result1_T=2")
 result1_arr, _ = first_order_detection(sample1_arr, T=25, n_points=9, k=2, check_row_col="row")
-utils.save_npArr2JPG(result1_arr, "result1_row")
+utils.save_npArr2JPG(result1_arr, "tmp/result1_row")
 result1_arr, _ = first_order_detection(sample1_arr, T=25, n_points=9, k=2, check_row_col="col")
-utils.save_npArr2JPG(result1_arr, "result1_col")
+utils.save_npArr2JPG(result1_arr, "tmp/result1_col")
 result1_arr, _ = first_order_detection(sample1_arr, T=25, n_points=9, k=2)
 utils.save_npArr2JPG(result1_arr, "result1")
-"""
 
 # prob (a-2)
 """
@@ -158,7 +159,7 @@ def second_order_detection(img_arr, T, n_neighbor=8, type_nb="non-separable"):
     #utils.plot_hist("tmp/prob1_a_2_laplacian_hist", [gradients, G_cnt])
     cnt, intensity = np.histogram(G_Laplacian)
     plt.plot(intensity[:-1], cnt) #, density=True, bins=bins)
-    plt.savefig( "{0}.png".format("tmp/prob1_a_2_laplacian_hist") )
+    plt.savefig( "{0}.png".format("tmp/prob1a2_laplacian_hist") )
     plt.clf()
     # Set up a threshold to separate zero and non-zero, output as GG
     GG = np.where(np.abs(G_Laplacian) <= T, 0, G_Laplacian)
@@ -187,14 +188,12 @@ def second_order_detection(img_arr, T, n_neighbor=8, type_nb="non-separable"):
     return edge_map_arr
 
 # Remember uncomment it before you submit.
-"""
-#result2_arr = second_order_detection(sample1_arr, 50, n_neighbor=8, type_nb="non-separable")
-#utils.save_npArr2JPG(result2_arr, "result2_T50")
-#result2_arr = second_order_detection(sample1_arr, 25, n_neighbor=8, type_nb="non-separable")
-#utils.save_npArr2JPG(result2_arr, "result2_Y25")
+result2_arr = second_order_detection(sample1_arr, 50, n_neighbor=8, type_nb="non-separable")
+utils.save_npArr2JPG(result2_arr, "tmp/result2_T50")
+result2_arr = second_order_detection(sample1_arr, 25, n_neighbor=8, type_nb="non-separable")
+utils.save_npArr2JPG(result2_arr, "tmp/result2_T25")
 result2_arr = second_order_detection(sample1_arr, 5, n_neighbor=8, type_nb="non-separable")
 utils.save_npArr2JPG(result2_arr, "result2")
-"""
 
 # prob (a-3)
 """
@@ -261,7 +260,6 @@ def Canny_edge_detection(img_arr, TH, TL, n_neighbor=8):
     return edge_map_arr, Fjk, Gjk, GNjk, is_edge_arr
 
 # Remember uncomment it before you submit.
-"""
 result3_arr, result3_s1_arr, result3_s2_arr, result3_s3_arr, result3_s4_arr = Canny_edge_detection(sample1_arr, 50, 15)
 utils.save_npArr2JPG(result3_arr, "result3")
 result3_s1_arr = utils.int_round(result3_s1_arr)
@@ -269,11 +267,10 @@ result3_s2_arr = np.where(result3_s2_arr > 25, 255, 0)
 result3_s3_arr = np.where(result3_s3_arr > 25, 255, 0)
 result3_s4_arr = np.where(result3_s4_arr >= 2, 255, 0)
 result3_s4_arr = np.where( (result3_s4_arr >= 1) & (result3_s4_arr < 2), 127, result3_s4_arr)
-utils.save_npArr2JPG(result3_s1_arr, "result3_s1")
-utils.save_npArr2JPG(result3_s2_arr, "result3_s2")
-utils.save_npArr2JPG(result3_s3_arr, "result3_s3")
-utils.save_npArr2JPG(result3_s4_arr, "result3_s4")
-"""
+utils.save_npArr2JPG(result3_s1_arr, "tmp/result3_cannys1")
+utils.save_npArr2JPG(result3_s2_arr, "tmp/result3_cannys2")
+utils.save_npArr2JPG(result3_s3_arr, "tmp/result3_cannys3")
+utils.save_npArr2JPG(result3_s4_arr, "tmp/result3_cannys4")
 
 # prob (a-4)
 """
@@ -304,15 +301,13 @@ def edge_crispen(img_arr, method="unsharp", c=3/5, L=7):
     return Gjk
 
 # Remember uncomment it before you submit.
-"""
 result4_arr = edge_crispen(sample1_arr, method="unsharp", c=3/5, L=7)
 result5_arr, _, _, _, _ = Canny_edge_detection(result4_arr, 50, 15)
 utils.save_npArr2JPG(result4_arr, "result4")
 utils.save_npArr2JPG(result5_arr, "result5")
-"""
 
-"""
 # prob (a-5)
+"""
 Compare result1.jpg, result2.jpg, result3.jpg and result5.jpg. Provide some discussions and findings in the report.
 """
 
@@ -323,36 +318,56 @@ Please design an algorithm to obtain the edge map of sample2.jpg as best as you 
 
 # Steps
 
-def prob1b_edge_detection(img_arr):
-    """exp1
-    # Step 1. high and low intensity detailed image.
-    GjkHigh = utils.transfer_powerLaw(img_arr, p=2)
-    GjkLow = utils.transfer_powerLaw(img_arr, p=1/2)
-    # Step 2. Canny edge detection for high and low intensity detailed image.
-    _, _, _, _, GjkHigh_cand = Canny_edge_detection(GjkHigh, 60, 30, n_neighbor=8)
-    _, _, _, _, GjkLow_cand = Canny_edge_detection(GjkLow, 60, 30, n_neighbor=8)
-    # Step 3. Combine them with linear combination
-    Gjk_cand = GjkHigh_cand + GjkLow_cand
-    edge_map_arr = np.where(Gjk_cand >= 2, 255, 0)
-    """
+def prob1b_edge_detection(img_arr, method="f"):
+    if method == "1":
+        # Step 1. high and low intensity detailed image.
+        GjkHigh = utils.transfer_powerLaw(img_arr, p=2)
+        GjkLow = utils.transfer_powerLaw(img_arr, p=1/2)
+        # Step 2. Canny edge detection for high and low intensity detailed image.
+        _, _, _, _, GjkHigh_cand = Canny_edge_detection(GjkHigh, 60, 30, n_neighbor=8)
+        _, _, _, _, GjkLow_cand = Canny_edge_detection(GjkLow, 60, 30, n_neighbor=8)
+        # Step 3. Combine them with linear combination
+        Gjk_cand = GjkHigh_cand + GjkLow_cand
+        edge_map_arr = np.where(Gjk_cand >= 2, 255, 0)
+    if method == "3":
+        # Step 1. high and low intensity detailed image.
+        GjkLow = utils.transfer_powerLaw(img_arr, p=1.4)
+        lowPass_filter = 1/(1 + 3 - 1 )**2 * np.ones( (3, 3) )
+        Gjkdenoise = convolve2d(GjkLow, lowPass_filter, boundary="symm", mode="same")
+        for i in range(10):
+            Gjkdenoise = convolve2d(Gjkdenoise, lowPass_filter, boundary="symm", mode="same")
+        # Step 2. Canny edge detection for high and low intensity detailed image.
+        Gjk, _, _, _, Gjk_candidate = Canny_edge_detection(Gjkdenoise, 60, 30, n_neighbor=8)
+        #Gjk = np.where(Gjk_candidate >= 2, 255, 0)
+        #Gjk = np.where( (Gjk_candidate >= 1) & (Gjk_candidate < 2), 127, Gjk)
+        edge_map_arr = Gjk
+    if method == "f":
+        lowPass_filter = 1/(1 + 3 - 1 )**2 * np.ones( (3, 3) )
+        # Step 1. Denoise by low pass filtering
+        Gjkdenoise = convolve2d(img_arr, lowPass_filter, boundary="symm", mode="same")
+        for i in range(10):
+            Gjkdenoise = convolve2d(Gjkdenoise, lowPass_filter, boundary="symm", mode="same")
+        # Step 1. high and low intensity detailed image.
+        GjkLow = utils.int_round( utils.transfer_powerLaw(Gjkdenoise, p=1.4))
+        # Step 2. edge crisperning
+        GjkEdge = edge_crispen(GjkLow, method="unsharp", c=3/5, L=7)
+        # Step 3. Canny edge detection for high and low intensity detailed image.
+        Gjk, _, _, _, _ = Canny_edge_detection(GjkEdge, 60, 30, n_neighbor=8)
+        #Gjk = np.where(Gjk_candidate >= 2, 255, 0)
+        #Gjk = np.where( (Gjk_candidate >= 1) & (Gjk_candidate < 2), 127, Gjk)
+        edge_map_arr = Gjk
+    if method == "2":
+        L = 3
+        lowPass_filter = 1/(1 + L - 1 )**2 * np.ones( (L, L) )
+        FLjk = convolve2d(Gjk, lowPass_filter, boundary='symm', mode='same')
+        c = 5/6
+        edge_map_arr = c/(2*c-1) * Gjk - (1-c)/(2*c-1) * FLjk
+        edge_map_arr = Gjk
+    return edge_map_arr, GjkLow, Gjkdenoise, GjkEdge
 
-    # Step 1. high and low intensity detailed image.
-    GjkLow = utils.transfer_powerLaw(img_arr, p=1.4)
-    # Step 2. Canny edge detection for high and low intensity detailed image.
-    _, _, _, _, Gjk_candidate = Canny_edge_detection(GjkLow, 60, 30, n_neighbor=8)
-    Gjk = np.where(Gjk_candidate >= 2, 255, 0)
-    Gjk = np.where( (Gjk_candidate >= 1) & (Gjk_candidate < 2), 127, Gjk)
-    # Step 3. Combine them with linear combination
-    """exp2
-    L = 3
-    lowPass_filter = 1/(1 + L - 1 )**2 * np.ones( (L, L) )
-    FLjk = convolve2d(Gjk, lowPass_filter, boundary='symm', mode='same')
-    c = 5/6
-    edge_map_arr = c/(2*c-1) * Gjk - (1-c)/(2*c-1) * FLjk
-    """
-    edge_map_arr = Gjk
-    return edge_map_arr
-
-prob1b_arr = prob1b_edge_detection(sample2_arr)
+prob1b_arr, prob1b_HC_arr, prob1b_LP_arr, prob1b_EC_arr = prob1b_edge_detection(sample2_arr)
 utils.save_npArr2JPG(prob1b_arr, "prob1b")
+utils.save_npArr2JPG(prob1b_HC_arr, "tmp/prob1b_HC")
+utils.save_npArr2JPG(prob1b_LP_arr, "tmp/prob1b_LP")
+utils.save_npArr2JPG(prob1b_EC_arr, "tmp/prob1b_EC")
 
