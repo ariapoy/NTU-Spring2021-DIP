@@ -30,14 +30,13 @@ def general_dilation_erosion(img_arr, H, method="erosion"):
            else:
                dilation
     """
-    # Step 1 Transform H(j, k) to kernel
     if np.max(img_arr) == 255:
         F = np.where(img_arr == 255, 1, 0)
     else:
         F = img_arr
-    # Step 2 convolution
+    # Step 1 convolution
     T = convolve2d(F, H, boundary='symm', mode='same')
-    # Step 3 erosion or dilation
+    # Step 2 erosion or dilation
     if method == "erosion":
         G = np.where(T == np.sum(H), 1, 0)
     elif method == "dilation":
@@ -75,11 +74,18 @@ def hole_fill(img_arr, H, iters=1):
     Gi = F
     for i in range(iters):
         Gi = general_dilation_erosion(Gi, H, method="dilation")*Fc
-    G = Gi + F
+        Gi = Gi + F
+    G = Gi
     res_arr = utils.int_round(G*255)
     return res_arr
 
-result2_arr = hole_fill(sample1_arr, struct_elem)
+struct_elem_times = np.array([
+                              [1, 0, 1],
+                              [0, 1, 0],
+                              [1, 0, 1]
+                             ])
+struct_elem_ones5 = np.ones((7, 7))
+result2_arr = hole_fill(sample1_arr, struct_elem_ones5, iters=1)
 utils.save_npArr2JPG(result2_arr, "result2")
 
 # prob (c)
@@ -172,7 +178,7 @@ def conn_comp_label_dict(img_arr, H):
 prob1c_hole_fill_arr = hole_fill(sample1_arr, struct_elem, iters=5)
 prob1c_arr, label_comp = conn_comp_label_dict(prob1c_hole_fill_arr, struct_elem)
 utils.save_npArr2JPG(prob1c_arr, "tmp/prob1c")
-print(len(np.unique(label_comp)))
+print(len(np.unique(label_comp))-1)
 fig, ax = plt.subplots()
 label_comp_fig = np.ma.masked_where(label_comp == 0, label_comp)
 cmap = plt.cm.RdBu
