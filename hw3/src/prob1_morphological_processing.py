@@ -74,18 +74,46 @@ def hole_fill(img_arr, H, iters=1):
     Gi = F
     for i in range(iters):
         Gi = general_dilation_erosion(Gi, H, method="dilation")*Fc
-        Gi = Gi + F
-    G = Gi
+    G = Gi + F
     res_arr = utils.int_round(G*255)
     return res_arr
 
-struct_elem_times = np.array([
-                              [1, 0, 1],
-                              [0, 1, 0],
-                              [1, 0, 1]
-                             ])
-struct_elem_ones5 = np.ones((7, 7))
-result2_arr = hole_fill(sample1_arr, struct_elem_ones5, iters=1)
+from collections import deque
+def hole_fill_bfs(img_arr):
+    if np.max(img_arr) == 255:
+        F = np.where(img_arr == 255, 1, 0)
+    else:
+        F = img_arr
+    # [flood-fill algo](https://leetcode.com/problems/flood-fill/discuss/1086688/Python-BFS-easiest-Soln)
+    def isValid(image, i, j):
+        if i < 0 or i >= image.shape[0] or j < 0 or j >= image.shape[1]:
+            return False
+        return True
+    def floodFill(image, sr, sc, newColor):
+        q = deque()
+        q.append((sr, sc, image[sr][sc]))
+        vis = set()
+        row = [-1, 0, 1, 0]
+        col = [0, -1, 0, 1]
+        while q:
+            i, j, k = q.popleft()
+            image[i][j] = newColor
+            vis.add((i, j))
+            for r, c in zip(row, col):
+                nRow = i + r
+                nCol = j + c
+                if isValid(image, nRow, nCol) and (nRow, nCol) not in vis and image[nRow][nCol] == k:
+                    image[nRow][nCol] = newColor
+                    vis.add((nRow, nCol))
+                    q.append((nRow, nCol, k))
+        return image
+    G = floodFill(F, 0, 0, 2)
+    res_arr = utils.int_round( np.where(G==2, 0, 1)*255)
+    return res_arr
+
+result2_lec4_arr = hole_fill(sample1_arr, struct_elem)
+utils.save_npArr2JPG(result2_lec4_arr, "tmp/result2_lec4")
+result2_arr = hole_fill_bfs(sample1_arr)
 utils.save_npArr2JPG(result2_arr, "result2")
 
 # prob (c)
@@ -175,7 +203,7 @@ def conn_comp_label_dict(img_arr, H):
     res_arr = utils.int_round(G*255)
     return res_arr, G_nonzero
 
-prob1c_hole_fill_arr = hole_fill(sample1_arr, struct_elem, iters=5)
+prob1c_hole_fill_arr = hole_fill_bfs(sample1_arr)
 prob1c_arr, label_comp = conn_comp_label_dict(prob1c_hole_fill_arr, struct_elem)
 utils.save_npArr2JPG(prob1c_arr, "tmp/prob1c")
 print(len(np.unique(label_comp))-1)
@@ -185,5 +213,4 @@ cmap = plt.cm.RdBu
 cmap.set_bad(color='black')
 ax.matshow(label_comp_fig, interpolation='none', cmap=cmap)
 fig.savefig("tmp/prob1c_cluster.png")
-
 
