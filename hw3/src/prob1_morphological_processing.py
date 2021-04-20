@@ -1,7 +1,9 @@
 from PIL import Image
 import numpy as np
+from numpy.linalg import matrix_power
 from scipy.signal import convolve2d
 import matplotlib.pyplot as plt
+from collections import deque
 
 import utils
 
@@ -52,7 +54,6 @@ def bound_extract(img_arr, H):
     res_arr = utils.int_round(beta*255)
     return res_arr
 
-
 struct_elem = np.array([
                         [1, 1, 1],
                         [1, 1, 1],
@@ -78,7 +79,6 @@ def hole_fill(img_arr, H, iters=1):
     res_arr = utils.int_round(G*255)
     return res_arr
 
-from collections import deque
 def hole_fill_bfs(img_arr):
     if np.max(img_arr) == 255:
         F = np.where(img_arr == 255, 1, 0)
@@ -111,7 +111,7 @@ def hole_fill_bfs(img_arr):
     res_arr = utils.int_round( np.where(G==2, 0, 1)*255)
     return res_arr
 
-result2_lec4_arr = hole_fill(sample1_arr, struct_elem)
+result2_lec4_arr = hole_fill(sample1_arr, struct_elem, iters=12)
 utils.save_npArr2JPG(result2_lec4_arr, "tmp/result2_lec4")
 result2_arr = hole_fill_bfs(sample1_arr)
 utils.save_npArr2JPG(result2_arr, "result2")
@@ -127,90 +127,62 @@ def conn_comp_label(img_arr, H):
         F = img_arr
     Gi = general_dilation_erosion(F, H, method="dilation")
     G = Gi*F
-    G_nonzero = np.where(G==1, -1, 0).copy()
-    # Use leader clustering
-    m, n = G_nonzero.shape
-    label_comp_cnt = 1
-    cnt_size = 1
-    label_merge_dict = []
-    for i in range(1, m-1):
-        for j in range(1, n-1):
-            if G_nonzero[i, j] == 0:
-                continue
-            G_sub_arr = G_nonzero[i-cnt_size:i+cnt_size+1, j-cnt_size:j+cnt_size+1]
-            if (G_sub_arr > 0).any():
-                G_sub_arr_gt0 = G_sub_arr[G_sub_arr > 0]
-                if len(np.unique(G_sub_arr_gt0) ) > 1:
-                    label_merge_dict.append("{0}to{1}".format(G_sub_arr_gt0.max(), G_sub_arr_gt0.min()))
-                G_nonzero[i-cnt_size:i+cnt_size+1, j-cnt_size:j+cnt_size+1] = np.where(G_sub_arr!=0, G_sub_arr.max(), 0)
-            elif (G_sub_arr < 0).any():
-                G_nonzero[i-cnt_size:i+cnt_size+1, j-cnt_size:j+cnt_size+1] = np.where(G_sub_arr!=0, label_comp_cnt, 0)
-                label_comp_cnt += 1
-                #label_merge_dict[label_comp_cnt] = {label_comp_cnt}
-            else:
-                print("I don\'t get it!")
-    label_merge_dict = [x.split("to") for x in set(label_merge_dict) ]
-    label_merge_dict = [[int(x[0]), int(x[1])] for x in label_merge_dict]
-    label_merge_dict = sorted(label_merge_dict)[::-1]
-    for cid in label_merge_dict:
-        G_nonzero = np.where(G_nonzero==cid[0], cid[1], G_nonzero)
-    G_nonzero += 10
-    res_arr = utils.int_round(G*255)
-    return res_arr, G_nonzero
-
-def conn_comp_label_dict(img_arr, H):
-    if np.max(img_arr) == 255:
-        F = np.where(img_arr == 255, 1, 0)
-    else:
-        F = img_arr
-    Gi = general_dilation_erosion(F, H, method="dilation")
-    G = Gi*F
-    G_nonzero = np.where(G==1, -1, 0).copy()
-    # Use leader clustering
-    m, n = G_nonzero.shape
+    G_conn_comp = np.where(G==1, -1, 0).copy()
+    # Count the number of objects
+    m, n = G_conn_comp.shape
     label_comp_cnt = 1
     cnt_size = 1
     label_merge_dict = {}
     for i in range(1, m-1):
         for j in range(1, n-1):
-            if G_nonzero[i, j] == 0:
+            if G_conn_comp[i, j] == 0:
                 continue
-            G_sub_arr = G_nonzero[i-cnt_size:i+cnt_size+1, j-cnt_size:j+cnt_size+1]
+            G_sub_arr = G_conn_comp[i-cnt_size:i+cnt_size+1, j-cnt_size:j+cnt_size+1]
             if (G_sub_arr > 0).any():
                 G_sub_arr_gt0 = G_sub_arr[G_sub_arr > 0]
                 if len(np.unique(G_sub_arr_gt0) ) > 1:
                     label_merge_dict[G_sub_arr_gt0.min()] |= set(np.unique(G_sub_arr_gt0).tolist())
-                G_nonzero[i-cnt_size:i+cnt_size+1, j-cnt_size:j+cnt_size+1] = np.where(G_sub_arr!=0, G_sub_arr.max(), 0)
+                G_conn_comp[i-cnt_size:i+cnt_size+1, j-cnt_size:j+cnt_size+1] = np.where(G_sub_arr!=0, G_sub_arr.max(), 0)
             elif (G_sub_arr < 0).any():
-                G_nonzero[i-cnt_size:i+cnt_size+1, j-cnt_size:j+cnt_size+1] = np.where(G_sub_arr!=0, label_comp_cnt, 0)
+                G_conn_comp[i-cnt_size:i+cnt_size+1, j-cnt_size:j+cnt_size+1] = np.where(G_sub_arr!=0, label_comp_cnt, 0)
                 label_merge_dict[label_comp_cnt] = {label_comp_cnt}
                 label_comp_cnt += 1
             else:
                 print("I don\'t get it!")
-    label_occur = np.zeros( (max(label_merge_dict), max(label_merge_dict) ) )
+    label_object_adj_mat = np.zeros( (max(label_merge_dict), max(label_merge_dict) ) )
     for cid in sorted(label_merge_dict)[::-1]:
         for vid in sorted(label_merge_dict[cid]):
-            label_occur[cid-1, vid-1] += 1
-            label_occur[vid-1, cid-1] += 1
-            #G_nonzero = np.where(G_nonzero==vid, max(label_merge_dict[cid]), G_nonzero)
-        #label_occur.append(cid)
+            label_object_adj_mat[cid-1, vid-1] += 1
+            label_object_adj_mat[vid-1, cid-1] += 1
     # https://math.stackexchange.com/questions/864604/checking-connectivity-of-adjacency-matrix
-    from numpy.linalg import matrix_power
-    label_occur = np.sign(matrix_power(np.sign(label_occur), label_occur.shape[0]))
-    for row in label_occur:
+    ## Step 2.1 Check the connectivity of clusters by adjancency matrix
+    label_object_adj_mat = np.sign(matrix_power(np.sign(label_object_adj_mat), label_object_adj_mat.shape[0]))
+    for row in label_object_adj_mat:
         for col in row.nonzero()[0]:
-            G_nonzero = np.where(G_nonzero==col+1, row.argmax()+1, G_nonzero)
+            G_conn_comp = np.where(G_conn_comp==col+1, row.argmax()+1, G_conn_comp)
     res_arr = utils.int_round(G*255)
-    return res_arr, G_nonzero
+    return res_arr, G_conn_comp
 
 prob1c_hole_fill_arr = hole_fill_bfs(sample1_arr)
-prob1c_arr, label_comp = conn_comp_label_dict(prob1c_hole_fill_arr, struct_elem)
-utils.save_npArr2JPG(prob1c_arr, "tmp/prob1c")
-print(len(np.unique(label_comp))-1)
-fig, ax = plt.subplots()
-label_comp_fig = np.ma.masked_where(label_comp == 0, label_comp)
-cmap = plt.cm.RdBu
-cmap.set_bad(color='black')
-ax.matshow(label_comp_fig, interpolation='none', cmap=cmap)
-fig.savefig("tmp/prob1c_cluster.png")
+_, label_comp = conn_comp_label(prob1c_hole_fill_arr, struct_elem)
+num_objects = len(np.unique(label_comp))-1
+print("Count the number of objects: {0}".format(num_objects) )
+cmap = plt.cm.tab20
+prob1c_cluster_arr = np.array( Image.new('RGB', (label_comp.shape[0], label_comp.shape[1]) ) )
+for i, cluster_id in enumerate(np.unique(label_comp)[1:]):
+    position = np.argwhere(label_comp == cluster_id)
+    prob1c_cluster_arr[position[:, 0], position[:, 1], :] = np.array(cmap(i)[:3])*255
+
+utils.save_npArr2JPG(prob1c_cluster_arr, "tmp/prob1c_cluster")
+
+_, label_comp = conn_comp_label(result2_lec4_arr, struct_elem)
+num_objects = len(np.unique(label_comp))-1
+print("Count the number of objects (lec4 method): {0}".format(num_objects) )
+cmap = plt.cm.tab20
+prob1c_cluster_arr = np.array( Image.new('RGB', (label_comp.shape[0], label_comp.shape[1]) ) )
+for i, cluster_id in enumerate(np.unique(label_comp)[1:]):
+    position = np.argwhere(label_comp == cluster_id)
+    prob1c_cluster_arr[position[:, 0], position[:, 1], :] = np.array(cmap(i)[:3])*255
+
+utils.save_npArr2JPG(prob1c_cluster_arr, "tmp/prob1c_cluster_lec4")
 
