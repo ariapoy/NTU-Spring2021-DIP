@@ -3,7 +3,9 @@ import numpy as np
 import pandas as pd
 from sklearn.svm import SVC
 from scipy.signal import convolve2d
+from scipy import stats
 import matplotlib.pyplot as plt
+from collections import deque
 
 import utils
 
@@ -11,10 +13,14 @@ import pdb
 
 import warnings
 warnings.filterwarnings("ignore")
+# fix random
 np.random.seed=0
+# color of cluster
+cmap = plt.cm.tab20
 
 # load image
 sample2_arr = utils.load_img2npArr("sample2.png")
+sample3_arr = utils.load_img2npArr("sample3.png")
 
 # prob (a)
 """
@@ -77,8 +83,28 @@ def laws_method(img_arr, window_size=13):
     return np.moveaxis(result_arr, 0, -1) 
 
 prob2a = laws_method(sample2_arr, window_size=13)
+# Remember uncomment it before submit
 prob2a_df = pd.DataFrame(prob2a.reshape(-1, 9))
+print(prob2a_df.shape)
 prob2a_stats = prob2a_df.describe()
+print(prob2a_stats)
+prob2a_stats.to_csv("tmp/prob2a_stats.csv")
+ax_scatter = pd.plotting.scatter_matrix(prob2a_df, alpha=0.2, diagonal="kde")
+
+plt.savefig("tmp/prob2a_scatter_matrix.png")
+plt.clf()
+ax = prob2a_stats.boxplot()
+plt.savefig("tmp/prob2a_boxplot.png")
+plt.clf()
+for i in range(prob2a_df.shape[1]):
+    ax = plt.subplot(3, 3, i+1)
+    res = stats.probplot(prob2a_df.iloc[:, i], plot=plt)
+    ax.set_title("")
+    ax.set_xlabel("")
+    ax.set_ylabel("")
+ 
+plt.savefig("tmp/prob2a_probplot.png")
+plt.clf()
 
 # prob (b)
 """
@@ -102,13 +128,24 @@ def kMeans(X, K, maxIters=10):
     return np.array(centroids), C
 
 # Remember uncomment it before submit
-centroids3, label3_arr = kMeans(prob2a.reshape(-1, 9), K=5, maxIters=20)
-result3_arr = label3_arr.reshape(prob2a.shape[:2])
-fig, ax = plt.subplots()
-cmap = plt.cm.RdBu
-ax.matshow(result3_arr, interpolation='none', cmap=cmap)
-fig.savefig("result3.png")
-plt.clf()
+centroids3, label3_cluster_arr = kMeans(prob2a.reshape(-1, 9), K=4, maxIters=20)
+result3_cluster_arr = label3_cluster_arr.reshape(prob2a.shape[:2])
+#result3_arr = np.array( Image.new('RGB', result_3_cluster_arr.shape  ) )
+result3_arr = np.array( Image.new('RGB', result3_cluster_arr.shape[::-1]  )  )
+for i, cluster_id in enumerate(np.unique(result3_cluster_arr)):
+    position = np.argwhere(result3_cluster_arr == cluster_id)
+    result3_arr[position[:, 0], position[:, 1], :] = np.array(cmap(i)[:3])*255
+
+utils.save_npArr2JPG(result3_arr, "result3")
+
+centroids3_keq5, label3_keq5cluster_arr = kMeans(prob2a.reshape(-1, 9), K=5)
+result3_keq5cluster_arr = label3_keq5cluster_arr.reshape(prob2a.shape[:2])
+result3_keq5arr = np.array( Image.new('RGB', result3_keq5cluster_arr.shape[::-1]  )  )
+for i, cluster_id in enumerate(np.unique(result3_keq5cluster_arr)):
+    position = np.argwhere(result3_keq5cluster_arr == cluster_id)
+    result3_keq5arr[position[:, 0], position[:, 1], :] = np.array(cmap(i)[:3])*255
+
+utils.save_npArr2JPG(result3_keq5arr, "tmp/result3_keq5")
 
 # prob (c)
 """
@@ -119,17 +156,47 @@ prob2c = prob2a.reshape(-1, 9)
 row_fea = np.arange(prob2a.shape[0]).repeat(prob2a.shape[1]).reshape(prob2a.shape[:2]).reshape(-1, 1)
 row_scalar = prob2a_stats.loc["mean"].mean()/200
 row_fea = row_scalar*row_fea
-#col_fea = np.arange(prob2a.shape[1]).repeat(prob2a.shape[0]).reshape(prob2a.shape[1::-1]).T.reshape(-1, 1)
 prob2c = np.hstack([prob2c, row_fea])
-#from sklearn.preprocessing import MinMaxScaler
-#scaler = MinMaxScaler()
-#prob2c_normal = scaler.fit_transform(prob2c)
-#prob2c_normal = prob2c_normal[:, :-1] # only use row position
-centroids4, label4_arr = kMeans(prob2c, K=5)
-result4_arr = label4_arr.reshape(prob2a.shape[:2])
+centroids4, result4_cluster_arr = kMeans(prob2c, K=4, maxIters=20)
+result4_cluster_arr = result4_cluster_arr.reshape(prob2a.shape[:2])
 
-fig, ax = plt.subplots()
-ax.matshow(result4_arr, interpolation='none', cmap=cmap)
-fig.savefig("result4.png")
-plt.clf()
+result4_arr = np.array( Image.new('RGB', result4_cluster_arr.shape[::-1]  )  )
+for i, cluster_id in enumerate(np.unique(result4_cluster_arr)):
+    position = np.argwhere(result4_cluster_arr == cluster_id)
+    result4_arr[position[:, 0], position[:, 1], :] = np.array(cmap(i)[:3])*255
+
+utils.save_npArr2JPG(result4_arr, "result4")
+
+# ehance of result 4
+#TBA
+
+# prob (Bonus)
+"""
+Try to replace the flowers in color or gray-scale sample2.png with sample3.png or other texture you prefer by using the result from (c), and output it as result5.png.
+"""
+position = np.argwhere(result4_cluster_arr==0)
+flower_id = 0
+for i in range(1, 4):
+    position_new = np.argwhere(result4_cluster_arr==i)
+    if position_new.shape[0] > position.shape[0]:
+        position = position_new
+        flower_id = i
+
+bound_box = np.vstack([ position.min(axis=0), position.max(axis=0)  ])
+sample3_rowext_arr = np.concatenate([sample3_arr]*3)
+sample3_ext_arr = np.concatenate([sample3_rowext_arr]*3, axis=1)
+sample3_extrv_arr = sample3_ext_arr[::-1, :]
+#result4_cluster_arr[bound_box[0,0]:bound_box[1,0], bound_box[0,1]:bound_box[1,1]] = sample3_ext_arr[bound_box[0,0]:bound_box[1,0], bound_box[0,1]:bound_box[1,1]]
+result5_arr = np.zeros(sample2_arr[:, :, 0].shape)
+result5_arr[bound_box[0,0]:bound_box[1,0], bound_box[0,1]:bound_box[1,1]] = sample3_ext_arr[bound_box[0,0]:bound_box[1,0], bound_box[0,1]:bound_box[1,1]]
+for i in [x for x in range(4) if x != flower_id]:
+    result5_arr = np.where(result4_cluster_arr==i, sample2_arr[:, :, 0], result5_arr)
+
+result5_rv_arr = np.zeros(sample2_arr[:, :, 0].shape)
+result5_rv_arr[bound_box[0,0]:bound_box[1,0], bound_box[0,1]:bound_box[1,1]] = sample3_extrv_arr[bound_box[0,0]:bound_box[1,0], bound_box[0,1]:bound_box[1,1]]
+for i in [x for x in range(4) if x != flower_id]:
+    result5_rv_arr = np.where(result4_cluster_arr==i, sample2_arr[:, :, 0], result5_rv_arr)
+
+utils.save_npArr2JPG(result5_arr, "result5")
+utils.save_npArr2JPG(result5_rv_arr, "tmp/result5_rv")
 

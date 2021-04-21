@@ -41,7 +41,7 @@ I start from generalized \textbf{dilation} and \textbf{erosion}. This is my \ale
 		As we \textbf{union} of all \(T_{r, c}\), we could check the \textbf{sum of matching} \(T_{r, c}\) is \alert{greater than} \(0\).
 	\end{itemize}
 \end{enumerate}
-This approach is transform \textbf{intersection} \& \textbf{union} as \textbf{convolution with condition}.
+This approach is to transform \textbf{intersection} \& \textbf{union} as \textbf{convolution with condition sum}.
 
 Then conduct the \textbf{boundary extraction} by formula. 
 \begin{enumerate}
@@ -80,19 +80,33 @@ I try some different \textbf{structure element}.
 	0 & 1 & 0
     \end{bmatrix}
 \]
-\alert{TBA}...
-\[
-    H(j, k) = \begin{bmatrix}
-	1 & 1 & 1\\
-	1 & 0 & 0\\
-	1 & 1 & 1
-    \end{bmatrix}
-\]
-\alert{TBA}...
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{src/tmp/result1_cross.png}
+    \caption{\textbf{result1.jpg} Boundary extraction with \textbf{cross} structure}
+    \label{result1_cross}
+\end{figure}
+The boundary of \nameref{result1_cross} is thinner than \nameref{result1}.
 
 \textbf{Different size of structure element}:
-Size \(H_{5 \times 5}(j, k)\)
-\alert{TBA}...
+\[
+    H(j, k) = \begin{bmatrix}
+	1 & 1 & 1 & 1 & 1\\
+	1 & 1 & 1 & 1 & 1\\
+	1 & 1 & 1 & 1 & 1\\
+	1 & 1 & 1 & 1 & 1\\
+	1 & 1 & 1 & 1 & 1
+    \end{bmatrix}
+\]
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{src/tmp/result1_ones5.png}
+    \caption{\textbf{result1.jpg} Boundary extraction with \(\mathbf{1}_{5 \times 5}\) structure}
+    \label{result1_ones5}
+\end{figure}
+The boundary of \nameref{result1_ones5} is thicker than \nameref{result1}.
+
+The above results is obvious as we try the larger size filled with \(1\). The number of \(1\) result the thick/thin boundary of objects.
 
 \subsection{(b)}\label{1_b}
 Perform hole filling on \textbf{sample1.png} and output the result as \textbf{result2.png}.
@@ -115,7 +129,7 @@ My idea is start from \textbf{breadth-first search (BFS)}. The idea comes from \
 	\end{itemize}
 	We fill the new color of this pixels.
 \end{enumerate}
-I use the trick that start from the \textbf{top-left corner pixel} with \textbf{black}. And fill up all \textbf{background} as \textbf{tag} (\(2\) ). Then I keep it as background and replace other pixels with \textbf{white color} (\(255\) ).
+I use the trick that start from the \textbf{top-left corner pixel} with \textbf{black}. And fill up all \textbf{background} as \textbf{tag} (\(2\)). Then I keep it as background and replace other pixels with \textbf{white color} (\(255\)).
 
 \paragraph{Performance of results}
 In the end, I choose the \textbf{flood fill} algorithm.
@@ -140,7 +154,7 @@ My approach is
 \begin{enumerate}
     \item Calculate complementary \(F^{c}(j, k)\)
     \item Dilation then \textbf{intersection} with complementary \( (F(j, k) \oplus H(j, k)) \ast F^{c}(j, k) \) \\
-	As we just get \(\{0, 1 \} \) of dilation as well as complementary results, we could times (\(\ast\) ) them as \textbf{intersection}.
+	As we just get \(\{0, 1 \}\) of dilation as well as complementary results, we could times (\(\ast\)) them as \textbf{intersection}.
 \end{enumerate}
 Moreover, I add parameters of \textbf{\# repeated} of hole filling operations.
 
@@ -157,13 +171,13 @@ with \textbf{center point as origin}. And repeat hole filling with \textbf{12} t
 Here is the result: \nameref{result2_lec4}
 \begin{figure}
     \centering
-    \includegraphics[width=0.7\textwidth]{src/tmp/result2_lec4.png}
+    \includegraphics[width=0.5\textwidth]{src/tmp/result2_lec4.png}
     \caption{\textbf{result2\_lec4.jpg} Hole filling in Lec 4 page 41}
     \label{result2_lec4}
 \end{figure}
 
 Although \nameref{result2} shows we successfully fill all holes, it expands original objects and connect to each other. 
-Why does it occur? I consider that my approach is not as good as \textit{Lec 4 page 41}. As I don't choose the \textbf{interior points} in the objects. So all objects become larger and larger.
+Why does it occur? I consider that my approach is not as good as \textit{Lec 4 page 41}. As I don't choose the \textbf{interior points} in the objects. So all objects become larger and larger when we expand on the \textbf{boundary of objects} then intersection with background.
 
 \subsection{(c)}\label{1_c}
 Please design an algorithm to count the number of objects in Figure 1. Describe the steps in detail and specify the corresponding parameters.
@@ -178,16 +192,17 @@ Second, I use \textbf{two-stage scan} for couting the number of objects. The det
 \paragraph{Approach}
 My approach is
 \begin{enumerate}
-    \item Initialize the object with tag \(-1\).
+    \item Initialize the object with tag (\(-1\)).
     \item Scan the \(8\)-neighbors of object \(F(j, k) \neq 0\) as \texttt{G\_subarray}.
 	\begin{itemize}
-	    \item if there are two above tags in \texttt{G\_subarray}, we store it as \textbf{connected cluster}.
+	    \item if there are more than two tags in \texttt{G\_subarray}, we store these tags as \textbf{connected cluster}.
 	    \item else substitute the new cluster tag for \(-1\) or propogate existed tag in \texttt{G\_subarray}.
 	\end{itemize}
     \item Get \texttt{label\_object\_adj\_mat} from \textbf{connected cluster}.
-    \item Check the connectivity of label object adjacency matrix by \(A^{k}\). \\
-	where \(k\) is number of clusters (candidate label objects).
-    \item Merge the connect clusters as final label objects. And count it!
+    \item Check the connectivity of label object adjacency matrix by \(\mbox{sgn}(A^{k})\). \\
+	where \(k\) is number of clusters (candidate label objects) and \(\mbox{sgn}(\bullet)\) is \textbf{sign function}. \\
+	It works based on the properties of \textbf{adjacency matrix}. The \(A^{k}\) means the \textbf{steps} from position row \(i\) to column \(j\). And \(1\) means \((i, j)\) are connective after walks \(k\) steps.
+    \item Merge the connective clusters as final label objects. And count it!
 \end{enumerate}
 
 \paragraph{Performance of results}
@@ -196,7 +211,7 @@ I use the \nameref{result2} than count it!
 Result of problem 1(c): \nameref{prob1c_cluster} with \(20\) objects.
 \begin{figure}
     \centering
-    \includegraphics[width=0.7\textwidth]{src/tmp/prob1c_cluster.png}
+    \includegraphics[width=0.5\textwidth]{src/tmp/prob1c_cluster.png}
     \caption{\# 20 Objects with color}
     \label{prob1c_cluster}
 \end{figure}
@@ -206,7 +221,7 @@ We could also conduct it for \nameref{result2_lec4}.
 Result of problem 1(c): \nameref{prob1c_cluster} with \(11\) objects.
 \begin{figure}
     \centering
-    \includegraphics[width=0.7\textwidth]{src/tmp/prob1c_cluster_lec4.png}
+    \includegraphics[width=0.5\textwidth]{src/tmp/prob1c_cluster_lec4.png}
     \caption{\# 11 Objects with color (Lec 4)}
     \label{prob1c_cluster_lec4}
 \end{figure}

@@ -5,7 +5,7 @@
 
 # for appendix results
 mkdir -p tmp
-python prob1_edgeDetection.py
-python prob2_geo_modify.py
+python prob1_morphological_processing.py
+python prob2_texture_analysis.py 
 echo "Finished!"
 

@@ -62,6 +62,25 @@ struct_elem = np.array([
 result1_arr = bound_extract(sample1_arr, struct_elem)
 utils.save_npArr2JPG(result1_arr, "result1")
 
+struct_elem_cross = np.array([
+                              [0, 1, 0],
+                              [1, 1, 1],
+                              [0, 1, 0]
+                             ])
+result1_cross_arr = bound_extract(sample1_arr, struct_elem_cross)
+utils.save_npArr2JPG(result1_cross_arr, "tmp/result1_cross")
+
+struct_elem_C = np.array([
+                          [1, 1, 1],
+                          [1, 0, 0],
+                          [1, 1, 1]
+                         ])
+result1_C_arr = bound_extract(sample1_arr, struct_elem_C)
+utils.save_npArr2JPG(result1_C_arr, "tmp/result1_C")
+
+result1_ones5_arr = bound_extract(sample1_arr, np.ones( (5, 5) ) )
+utils.save_npArr2JPG(result1_ones5_arr, "tmp/result1_ones5")
+
 # prob (b)
 """
 Perform hole filling on sample1.png and output the result as result2.png.
