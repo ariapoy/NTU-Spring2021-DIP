@@ -101,9 +101,13 @@ We could check if we \textbf{remove/drop} \(0\) values, most of our features are
 For this result, we could design \textbf{row features} to enhance our performance when classifying.
 
 \paragraph{Discussion}
-I'm not sure the scale/normalization of \(F_{j, k} \in [0, 255]\) or \(F_{j, k} \in [0, 1]\). My intuition tells me the difference occurs at \textbf{energy computation}.
-Unfortunately, I keep this issue in future.
-
+I follow the \textit{Lec 4 page 22} draw the Law's features \nameref{prob2a_laws}.
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{src/tmp/prob2a_laws.png}
+    \caption{Law's features}
+    \label{prob2a_laws}
+\end{figure}
 
 \subsection{(b)}\label{2_b}
 Use k-means algorithm to classify each pixel with the feature vectors you obtained from (a). Label same kind of texture with the same color and output it as \textbf{result3.png}.
@@ -217,4 +221,14 @@ Result of problem 2(Bonus): \nameref{result5}
 Thanks to TA's advice. I try to expand the \nameref{sample3} that could be assigned to new figures.
 But it still has some \textbf{strange boundaries} at \textbf{horizontal view}.
 Maybe I could try better in future.
+
+Also I try \textbf{scale methods} to get another results. Please enjoy it. :-)
+
+Result of problem 2(Bonus): \nameref{result5_rv}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.6\textwidth]{src/tmp/result5_rv.png}
+    \caption{\textbf{result5.png} Texture replacement with scaling}
+    \label{result5_rv}
+\end{figure}
 

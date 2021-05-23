@@ -88,6 +88,10 @@ prob2a_df = pd.DataFrame(prob2a.reshape(-1, 9))
 print(prob2a_df.shape)
 prob2a_stats = prob2a_df.describe()
 print(prob2a_stats)
+for i in range(9):
+    prob2a_T = utils.int_round(prob2a[:, :, i]/prob2a[:, :, i].max()*255)
+    utils.save_npArr2JPG(prob2a_T, "tmp/prob2a_laws{0}".format(i+1))
+
 prob2a_stats.to_csv("tmp/prob2a_stats.csv")
 ax_scatter = pd.plotting.scatter_matrix(prob2a_df, alpha=0.2, diagonal="kde")
 
@@ -185,7 +189,9 @@ for i in range(1, 4):
 bound_box = np.vstack([ position.min(axis=0), position.max(axis=0)  ])
 sample3_rowext_arr = np.concatenate([sample3_arr]*3)
 sample3_ext_arr = np.concatenate([sample3_rowext_arr]*3, axis=1)
-sample3_extrv_arr = sample3_ext_arr[::-1, :]
+sample3_rowextrv_arr = np.repeat(sample3_arr, 3, axis=0)
+sample3_extrv_arr = np.repeat(sample3_rowextrv_arr, 3, axis=1)
+
 #result4_cluster_arr[bound_box[0,0]:bound_box[1,0], bound_box[0,1]:bound_box[1,1]] = sample3_ext_arr[bound_box[0,0]:bound_box[1,0], bound_box[0,1]:bound_box[1,1]]
 result5_arr = np.zeros(sample2_arr[:, :, 0].shape)
 result5_arr[bound_box[0,0]:bound_box[1,0], bound_box[0,1]:bound_box[1,1]] = sample3_ext_arr[bound_box[0,0]:bound_box[1,0], bound_box[0,1]:bound_box[1,1]]
