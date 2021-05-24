@@ -139,16 +139,15 @@ def err_diffusion(img_arr, filter_mask="Floyd", thr=0.5, n_iter=1):
         n_pad = 1
     M, N = F.shape
     for i in range(0, M - n_pad):
+        if i % 2 == 0:
+            for j in range(1, N - n_pad):
+                tildeF[i:i+n_pad+1, j-n_pad:j+n_pad+1] = F[i:i+n_pad+1, j-n_pad:j+n_pad+1] + E[i,j] * mask
         if i % 2 == 1:
-            F[i:i+n_pad+1, :] = F[i:i+n_pad+1, ::-1]
-            tildeF[i:i+n_pad+1, :] = tildeF[i:i+n_pad+1, ::-1]
-            mask == mask[:, ::-1]
-        for j in range(1, N - n_pad):
-            tildeF[i:i+n_pad+1, j-n_pad:j+n_pad+1] = F[i:i+n_pad+1, j-n_pad:j+n_pad+1] + E[i,j] * mask
-        if i % 2 == 1:
-            F[i:i+n_pad+1, :] = F[i:i+n_pad+1, ::-1]
-            tildeF[i:i+n_pad+1, :] = tildeF[i:i+n_pad+1, ::-1]
-            mask == mask[:, ::-1]
+            for j in range(N - n_pad - 1, 0):
+                tildeF[i:i+n_pad+1, j-n_pad:j+n_pad+1] = F[i:i+n_pad+1, j-n_pad:j+n_pad+1] + E[i, j] * mask
+            #F[i:i+n_pad+1, :] = F[i:i+n_pad+1, ::-1]
+            #tildeF[i:i+n_pad+1, :] = tildeF[i:i+n_pad+1, ::-1]
+            #mask == mask[:, ::-1]
 
     G = np.where(tildeF >= T, 1, 0)
     return utils.int_round(255*G)
