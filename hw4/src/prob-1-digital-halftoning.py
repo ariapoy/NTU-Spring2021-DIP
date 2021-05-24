@@ -16,7 +16,6 @@ SEED = 0
 np.random.seed(SEED)
 
 sample1_arr = utils.load_img2npArr("sample1.png")
-print(sample1_arr.shape)
 
 # prob 1(a)
 """
@@ -114,11 +113,8 @@ def err_diffusion(img_arr, filter_mask="Floyd", thr=0.5, n_iter=1):
     Step 4 Error diffusion + serpentine scanning
     """
     # Step 1
-    F = img_arr / img_arr.max()
+    F = img_arr / 255
     tildeF = F.copy()
-    T = thr
-    G = np.where(F >= T, 1, 0)
-    E = F - G
     if filter_mask == "Floyd":
         mask = 1/16*np.array([
                               [0, 0, 7], 
@@ -133,7 +129,8 @@ def err_diffusion(img_arr, filter_mask="Floyd", thr=0.5, n_iter=1):
                              ])
         n_pad = 2
     else:
-        mask = 1/2*np.array([[0, 1],
+        mask = 1/2*np.array([
+                             [0, 1],
                              [1, 0],
                             ])
         n_pad = 1
@@ -141,15 +138,16 @@ def err_diffusion(img_arr, filter_mask="Floyd", thr=0.5, n_iter=1):
     for i in range(0, M - n_pad):
         if i % 2 == 0:
             for j in range(1, N - n_pad):
-                tildeF[i:i+n_pad+1, j-n_pad:j+n_pad+1] = F[i:i+n_pad+1, j-n_pad:j+n_pad+1] + E[i,j] * mask
+                Gij = np.where(F[i, j] >= thr, 1, 0)
+                Eij = F[i, j] - Gij
+                tildeF[i:i+n_pad+1, j-n_pad:j+n_pad+1] = F[i:i+n_pad+1, j-n_pad:j+n_pad+1] + Eij*mask
         if i % 2 == 1:
             for j in range(N - n_pad - 1, 0):
-                tildeF[i:i+n_pad+1, j-n_pad:j+n_pad+1] = F[i:i+n_pad+1, j-n_pad:j+n_pad+1] + E[i, j] * mask
-            #F[i:i+n_pad+1, :] = F[i:i+n_pad+1, ::-1]
-            #tildeF[i:i+n_pad+1, :] = tildeF[i:i+n_pad+1, ::-1]
-            #mask == mask[:, ::-1]
+                Gij = np.where(F[i, j] >= thr, 1, 0)
+                Eij = F[i, j] - Gij
+                tildeF[i:i+n_pad+1, j-n_pad:j+n_pad+1] = F[i:i+n_pad+1, j-n_pad:j+n_pad+1] + Eij*mask[:, ::-1]
 
-    G = np.where(tildeF >= T, 1, 0)
+    G = np.where(tildeF >= thr, 1, 0)
     return utils.int_round(255*G)
 
 result3_arr = err_diffusion(sample1_arr, filter_mask="Floyd", thr=0.5, n_iter=1)
