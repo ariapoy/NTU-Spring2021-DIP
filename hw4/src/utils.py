@@ -20,16 +20,6 @@ def save_npArr2JPG(img_arr, name):
 def int_round(img_arr):
     return np.array(np.round(img_arr), dtype=np.uint8)
 
-def poy_histogram(img_arr, bins):
-    intensity = bins
-    cnt = np.zeros(bins.shape)
-    if not isinstance(img_arr[0, 0], int):
-        img_arr = img_arr.astype(int)
-    for i in range(img_arr.shape[0]):
-        for j in range(img_arr.shape[1]):
-            cnt[ img_arr[i, j] ] += 1
-    return cnt, intensity
-
 def plot_hist(name, *args):
     """
     parameters
