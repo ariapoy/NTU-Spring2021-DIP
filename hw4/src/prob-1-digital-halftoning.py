@@ -105,19 +105,11 @@ print("Finish prob 1 (b).")
 Perform error diffusion with two different filter masks. Output the results as \textbf{result3.png}, and \textbf{result4.png}, respectively. Discuss these two masks based on the results. \\
 """
 
-def err_diffusion(img_arr, filter_mask="Floyd", thr=0.5, n_iter=1):
-    """
-    Step 1 normalize F bet [0, 1], threshold = 0.5, filter_mask
-    Step 2 Calculate G by threshold
-    Step 3 Calculate error E = \tilde{F} - G
-    Step 4 Error diffusion + serpentine scanning
-    """
-    # Step 1
+def err_diffusion(img_arr, filter_mask="Floyd", thres=0.5):
     F = img_arr / 255
-    tildeF = F.copy()
     if filter_mask == "Floyd":
         mask = 1/16*np.array([
-                              [0, 0, 7], 
+                              [0, 0, 7],
                               [3, 5, 1]
                              ])
         n_pad = 1
@@ -134,23 +126,29 @@ def err_diffusion(img_arr, filter_mask="Floyd", thr=0.5, n_iter=1):
                              [1, 0],
                             ])
         n_pad = 1
-    M, N = F.shape
-    for i in range(0, M - n_pad):
-        if i % 2 == 0:
-            for j in range(1, N - n_pad):
-                Gij = np.where(F[i, j] >= thr, 1, 0)
-                Eij = F[i, j] - Gij
-                tildeF[i:i+n_pad+1, j-n_pad:j+n_pad+1] = F[i:i+n_pad+1, j-n_pad:j+n_pad+1] + Eij*mask
-        if i % 2 == 1:
-            for j in range(N - n_pad - 1, 0):
-                Gij = np.where(F[i, j] >= thr, 1, 0)
-                Eij = F[i, j] - Gij
-                tildeF[i:i+n_pad+1, j-n_pad:j+n_pad+1] = F[i:i+n_pad+1, j-n_pad:j+n_pad+1] + Eij*mask[:, ::-1]
 
-    G = np.where(tildeF >= thr, 1, 0)
+    # serpentine scanning
+    for i in range(0, F.shape[0] - n_pad):
+        if i % 2 == 0:
+            for j in range(n_pad, F.shape[1] - n_pad):
+                Fij = F[i, j]
+                Gij = np.where(Fij >= thres, 1, 0)
+                F[i, j] = Gij
+                Eij = Fij - Gij
+                F[i:i+n_pad+1, j-n_pad:j+n_pad+1] += Eij*mask
+        else:
+            for j in range(F.shape[1] - n_pad - 1, n_pad - 1, -1):
+                Fij = F[i, j]
+                Gij = np.where(Fij >= thres, 1, 0)
+                F[i, j] = Gij
+                Eij = Fij - Gij
+                F[i:i+n_pad+1, j-n_pad:j+n_pad+1] += Eij*mask[:, ::-1]
+
+    G = np.where(F > thres, 1, 0)
+
     return utils.int_round(255*G)
 
-result3_arr = err_diffusion(sample1_arr, filter_mask="Floyd", thr=0.5, n_iter=1)
+result3_arr = err_diffusion(sample1_arr, thres=0.5)
 utils.save_npArr2JPG(result3_arr, "result3")
 #result4_arr = err_diffusion(sample1_arr, filter_mask="Jarvis", thr=0.5, n_iter=1)
 #utils.save_npArr2JPG(result4_arr, "result4")
