@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageDraw
 import numpy as np
 from numpy.linalg import matrix_power
 from scipy.signal import convolve2d
@@ -150,7 +150,47 @@ def err_diffusion(img_arr, filter_mask="Floyd", thres=0.5):
 
 result3_arr = err_diffusion(sample1_arr, thres=0.5)
 utils.save_npArr2JPG(result3_arr, "result3")
-#result4_arr = err_diffusion(sample1_arr, filter_mask="Jarvis", thr=0.5, n_iter=1)
-#utils.save_npArr2JPG(result4_arr, "result4")
+result4_arr = err_diffusion(sample1_arr, filter_mask="Jarvis", thres=0.5)
+utils.save_npArr2JPG(result4_arr, "result4")
 print("Finish prob 1 (c).")
+
+# prob 1(c)
+"""
+Try to transfer \textbf{result1.png} to a dotted halftone/manga style binary image such as \textbf{sample1\_dotted.png} in Figure 1.(c). Describe the steps in detail and show the result. \\
+"""
+
+def dotted_style(img, radius=3):
+    M, N = img.shape
+    res_img_arr = np.zeros_like(img.copy())
+    res_img = Image.fromarray(res_img_arr.astype(np.uint8))
+    draw = ImageDraw.Draw(res_img)
+    F = img/255
+    for i in range(0, M, 2*radius+1):
+    #for i in range(0, M - 2*radius):
+    #for i in range(0, M - radius, radius+1):
+        for j in range(0, N, 2*radius+1):
+        #for j in range(0, N - 2*radius):
+        #for j in range(0, N - radius, radius+1):
+            i_bnd, j_bnd = i + 2*radius - 1, j + 2*radius - 1
+            i_center, j_center = i + radius - 1, j + radius - 1
+            Fij = F[i:i_bnd, j:j_bnd]
+            Nij = np.random.normal(0, 0.05, Fij.shape)
+            Hij = (Fij + Nij).mean()
+            if Hij <= 0.2:
+                radius_scale = 0
+            elif Hij <= 0.4:
+                radius_scale = radius - 2
+            elif Hij <= 0.6:
+                radius_scale = radius - 1
+            elif Hij <= 0.8:
+                radius_scale = radius
+            else:
+                radius_scale = radius + 1
+            draw.ellipse([(j_center - radius_scale, i_center - radius_scale), (j_center + radius_scale, i_center + radius_scale)], fill=255, width=0)
+
+    return np.array(res_img)
+
+sample1_dotted_arr = dotted_style(result1_arr)
+utils.save_npArr2JPG(sample1_dotted_arr, "sample1_dotted")
+print("Finish prob 1 (d).")
 
