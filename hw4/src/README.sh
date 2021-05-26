@@ -8,3 +8,4 @@ mkdir -p tmp
 python prob-1-digital-halftoning.py
 python prob-2-frequency-domain.py
 echo "Finished!"
+

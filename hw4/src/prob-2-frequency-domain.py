@@ -117,12 +117,40 @@ Based on the result of part (a), design and apply a high-pass filter in the freq
 """
 
 result8_G_arr = ifft_shift(filter_on_freqdomain(sample2_arr, filter_name="Gaussian_high-pass", D0=50) )
-utils.save_npArr2JPG(result8_G_arr, "tmp/result8-Gaussian")
-result9_G_arr = filter_on_spatdomain(sample2_arr, filter_name="Gaussian_high-pass", D0=50, k=5)
-utils.save_npArr2JPG(result9_G_arr, "tmp/result9-Gaussian")
-result8_arr = ifft_shift(filter_on_freqdomain(sample2_arr, filter_name="Laplacian_high-pass", D0=50) )
-utils.save_npArr2JPG(result8_arr, "result8")
-result9_arr = filter_on_spatdomain(sample2_arr, filter_name="Laplacian_high-pass", D0=50, k=5)
+utils.save_npArr2JPG(result8_G_arr, "result8")
+result9_G_arr = sample2_arr - filter_on_spatdomain(sample2_arr, filter_name="Gaussian_low-pass", D0=50, k=5)
 utils.save_npArr2JPG(result9_G_arr, "result9")
+
+result8_L_arr = ifft_shift(filter_on_freqdomain(sample2_arr, filter_name="Laplacian_high-pass", D0=50) )
+utils.save_npArr2JPG(result8_L_arr, "tmp/result8-Laplacian")
+result9_L_arr = filter_on_spatdomain(sample2_arr, filter_name="Laplacian_high-pass", D0=50, k=5)
+utils.save_npArr2JPG(result9_L_arr, "tmp/result9-Laplcian")
 print("Finish prob 2 (c).")
+
+# prob 2(d)
+"""
+Perform Fourier Transform on \textbf{sample3.png} and output it as \textbf{result10.png}. Please discuss what you observe in \textbf{sample3.png} and \textbf{result10.png}.
+"""
+
+sample3_arr = utils.load_img2npArr("sample3.png")
+
+result10_arr = utils.int_round(255*plot_fft(shift_fft(sample3_arr) ) )
+utils.save_npArr2JPG(result10_arr, "result10")
+print("Finish prob 2 (d).")
+
+# prob 2(e)
+"""
+Try to remove the undesired pattern on \textbf{sample3.png} and output it as \textbf{result11.png}.
+"""
+
+def noise_filter_on_freqdomain(img_arr, filter_range=None):
+    M, N = img_arr.shape
+    img_freq_arr = shift_fft(img_arr)
+    img_freq_arr[M//2 - 1: M//2 + 2, 165:185] = 0
+    img_freq_arr[M//2 - 1: M//2 + 2, 455:475] = 0
+    g = ifft_shift(img_freq_arr)
+    return g
+
+result11_arr = noise_filter_on_freqdomain(sample3_arr)
+utils.save_npArr2JPG(result11_arr, "result11")
 

@@ -122,8 +122,8 @@ def err_diffusion(img_arr, filter_mask="Floyd", thres=0.5):
         n_pad = 2
     else:
         mask = 1/2*np.array([
-                             [0, 1],
-                             [1, 0],
+                             [0, 0, 1],
+                             [0, 1, 0],
                             ])
         n_pad = 1
 
@@ -152,6 +152,10 @@ result3_arr = err_diffusion(sample1_arr, thres=0.5)
 utils.save_npArr2JPG(result3_arr, "result3")
 result4_arr = err_diffusion(sample1_arr, filter_mask="Jarvis", thres=0.5)
 utils.save_npArr2JPG(result4_arr, "result4")
+
+result1c_diag_arr = err_diffusion(sample1_arr, filter_mask="diagonal", thres=0.5)
+utils.save_npArr2JPG(result1c_diag_arr, "tmp/result1c_diag")
+
 print("Finish prob 1 (c).")
 
 # prob 1(c)
